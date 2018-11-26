@@ -5,7 +5,7 @@
 	c++
 
 # Methods
-	Dense Matrix Vector Multiplication\\
+	Dense Matrix Vector Multiplication
 	Dense Matrix Matrix Operation
 	Sparse Matrix Vector Multiplication
 	Sparse Matrix Matrix Operation
