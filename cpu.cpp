@@ -456,6 +456,23 @@ void Gauss_elmination_cpu(float a[], float b[], float d[], int n) {
 
 }
 
+// void jacobi_method_cpu(float a[], float x[], float b[], float x_new[], int n, int num_iter) {
+//
+// 	for (int k = 0; k < num_iter; k++) {
+// 		for (int i = 0; i < n; i++ ) {
+// 			float sum = 0;
+// 			for (int j = 0; j < n; j++ ) {
+// 				if ( j != i ) {
+// 					sum += (a[i * (n) + j] * x[j]);
+// 				}
+// 			}
+// 			x_new[i] = (b[i] - sum ) / a[i + i * (n)];
+// 		}
+// 		for (int i = 0; i < n; i++) {
+// 			x[i] = x_new[i];
+// 		}
+// 	}
+// }
 void jacobi_method_cpu(float a[], float x[], float b[], float x_new[], int n, int num_iter) {
 
 	for (int k = 0; k < num_iter; k++) {

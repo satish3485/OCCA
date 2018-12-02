@@ -10,7 +10,7 @@ x_cpu = csvread('x_cpu.csv');
 
 isequalAbs = @(x,y,tol) ( norm(x-y) <= tol );
 
-tf = isequalAbs(X,x_cpu,1e-3);
+tf = isequalAbs(X,x_gpu,1e-3);
 for i=1: length(tf)
     if tf(i) == 0
         disp("it is error not same ");
@@ -20,7 +20,7 @@ end
 disp("it is same ");
       
 hold on
-plot(abs(X-x_gpu)./X)
+plot(abs(X-x_gpu)./abs(X))
 figure
 plot(X)
 % xxx = zeros ( 100, 1 );

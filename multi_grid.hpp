@@ -25,6 +25,7 @@ using namespace std;
 #include <occa.hpp>
 #include "cpu.hpp"
 #include <fstream>
+#include <stdio.h>
 // gauss_elmination : This function gauss elmination method
 void gauss_elmination(int row, occa::memory o_a, occa::memory o_b, occa::memory o_ab, occa::device device);
 

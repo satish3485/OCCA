@@ -44,6 +44,7 @@
 #include "sparse_matrix.hpp"
 #include "multi_grid.hpp"
 #include <fstream>
+#include <stdio.h>
 
 occa::json parseArgs(int argc, const char **argv);
 occa::json parseArgs(int argc, const char **argv) {

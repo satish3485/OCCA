@@ -1033,7 +1033,7 @@ void multigrid_method_once_sparse_matrix(int row, occa::memory o_a, occa::memory
     o_x.copyFrom(x);
 
 
-    clock_t start;
+    clock_t start, start2;
 
     double duration, duration2;
     start = clock();
@@ -1067,7 +1067,7 @@ void multigrid_method_once_sparse_matrix(int row, occa::memory o_a, occa::memory
     duration = ( clock() - start ) / (double) CLOCKS_PER_SEC;
     cout << "timer for GPU printf: " << duration << '\n';
 
-    start = clock();
+    start2 = clock();
 
     for (int ii = 0; ii < 10; ii++) {
 
@@ -1095,7 +1095,7 @@ void multigrid_method_once_sparse_matrix(int row, occa::memory o_a, occa::memory
         delete [] x_new2h2;
 
     }
-    duration2 = ( clock() - start ) / (double) CLOCKS_PER_SEC;
+    duration2 = ( clock() - start2 ) / (double) CLOCKS_PER_SEC;
     cout << "timer for CPU printf: " << duration2 << '\n';
 
     cout << "speedup  : " << duration2 / duration << '\n';

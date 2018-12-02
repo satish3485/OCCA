@@ -20,6 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  */
 #include <iostream>
+#include <stdio.h>
 #include <ctime>
 #include "cstdlib"
 #include <occa.hpp>

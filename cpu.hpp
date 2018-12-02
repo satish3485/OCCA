@@ -23,6 +23,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <cmath>
+#include <stdio.h>
 // #include "cpu.cpp"
 // using namespace std;
 
