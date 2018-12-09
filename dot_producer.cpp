@@ -148,7 +148,7 @@ int main(int argc, const char **argv) {
     cout << "3. Sparse Matrix Vector Multiplication press 3 & enter" << endl;
     cout << "4. Sparse Matrix Matrix Operation press 4 & enter" << endl;
     cout << "5. Vector Vector Multiplication press 5 & enter" << endl;
-    cout << "6. Guess Elimination method press 6 & enter" << endl;
+    cout << "6. Gauss Elimination method press 6 & enter" << endl;
     cout << "7. Jacobi method method press 7 & enter" << endl;
     cout << "8. Reduction and Interpolation matrix press 8 & enter" << endl;
     cout << "9. Interpolation vector press 9 & enter" << endl;
@@ -348,5 +348,3 @@ int main(int argc, const char **argv) {
     }
     return 0;
 }
-
-

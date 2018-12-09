@@ -147,12 +147,5 @@ float norm(float v[], int size);
 //reduction_reduction_vector: it is reduction of vector
 void reduction_vector_sparse(float v[], int len, float result[]);
 
-
-
-
-
-
-
-
-
-
+//gauss_seidel_method_cpu : Gauss seidel method 
+void gauss_seidel_method_cpu(float a[], float x[], float b[], float x_new[], int n, int num_iter);

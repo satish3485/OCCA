@@ -24,7 +24,7 @@
 //#include "cstdlib"
 #include "multi_grid.hpp"
 using namespace std;
-
+#include <chrono>
 
 void gauss_elmination(int row, occa::memory o_a, occa::memory o_b, occa::memory o_ab, occa::device device) {
 
@@ -134,32 +134,36 @@ void jacobi_method(int row, occa::memory o_a, occa::memory o_b, occa::memory o_a
     o_d.copyFrom(x);
     o_b.copyFrom(b);
     //
-    clock_t start;
-    double duration, duration2;
-    start = clock();
-
+    auto start = std::chrono::system_clock::now();
 //    Launch device kernel;
     for (int i = 0; i < iteration; i++) {
 
         matrix_X_Vector_kernal(o_a, o_b, o_c, o_d, row);
     }
 
-    duration = ( clock() - start ) / (double) CLOCKS_PER_SEC;
-    cout << "timer for GPU printf: " << duration << '\n';
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> diff = end-start;
+    std::cout << "Time to GPU  ints : " << diff.count() << " s\n";
+
 
     // Copy result to the host
     o_c.copyTo(x_new);
 
     init_zero(x, row);
 
-    start = clock();
+    start = std::chrono::system_clock::now();
 
     jacobi_method_cpu(a, x, b, x_new2, row, iteration);
-    duration2 = ( clock() - start ) / (double) CLOCKS_PER_SEC;
-    cout << "timer for CPU printf: " << duration2 << '\n';
+    // duration2 = ( clock() - start ) / (double) CLOCKS_PER_SEC;
+    // cout << "timer for CPU printf: " << duration2 << '\n';
+    //
+    // cout << "speedup  : " << duration2 / duration << '\n';
 
-    cout << "speedup  : " << duration2 / duration << '\n';
+    end = std::chrono::system_clock::now();
+    std::chrono::duration<double> diff2 = end-start;
+    std::cout << "Time to CPU  ints : " << diff2.count() << " s\n";
 
+    cout << "speedup  : " << diff2.count() / diff.count() << '\n';
     compareTwoVector(x_new, x_new2, row);
 
     // Free host memory
@@ -344,8 +348,8 @@ void multigrid_method(float a[], float x[], float b[], int recursion, int row, i
 
     init_zero(x_new2, row);
 
-    jacobi_method_cpu(a, x, b, x_new2, row, alpha);
-
+    // jacobi_method_cpu(a, x, b, x_new2, row, alpha);
+    gauss_seidel_method_cpu(a, x, b, x_new2, row, alpha);
 
     float *b2h = new float[row / 2];
     float *res1 = new float[row];
@@ -379,7 +383,8 @@ void multigrid_method(float a[], float x[], float b[], int recursion, int row, i
 
     init_zero(x_new2, row);
 
-    jacobi_method_cpu(a, x, b, x_new2, row, alpha);
+    // jacobi_method_cpu(a, x, b, x_new2, row, alpha);
+    gauss_seidel_method_cpu(a, x, b, x_new2, row, alpha);
 
 
     delete [] x_new2h;
@@ -590,12 +595,14 @@ void multigrid_method_once(int row, occa::memory o_a, occa::memory o_b, occa::me
     o_b.copyFrom(b);
     o_c.copyFrom(x);
 
-    clock_t start;
+    // clock_t start;
 
 //    Launch device kernel;
-    double duration, duration2;
-    start = clock();
-    for (int i = 0; i < 30; i++) {
+    // double duration, duration2;
+    // start = clock();
+    auto start = std::chrono::system_clock::now();
+
+    for (int i = 0; i < 5; i++) {
         multigrid_method_gpu(row, o_a, o_b, o_c, device, recursion, 10);
         // calculate absolute value residual r = ||Ax-b||
         // if < epsilon : break
@@ -626,16 +633,16 @@ void multigrid_method_once(int row, occa::memory o_a, occa::memory o_b, occa::me
 
     }
 
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> diff = end-start;
+    std::cout << "Time to GPU  ints : " << diff.count() << " s\n";
 
-    duration = ( clock() - start ) / (double) CLOCKS_PER_SEC;
-    cout << "timer for GPU printf: " << duration << '\n';
-//    print_vector(row, x);
 
     o_c.copyTo(x);
 
-    start = clock();
+    start = std::chrono::system_clock::now();
 
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 5; i++) {
         multigrid_method(a2, x2, b2, recursion, row, 10);
 
         float *x_new2h2 = new float[row];
@@ -660,10 +667,11 @@ void multigrid_method_once(int row, occa::memory o_a, occa::memory o_b, occa::me
         delete [] x_new2h2;
 
     }
-    duration2 = ( clock() - start ) / (double) CLOCKS_PER_SEC;
-    cout << "timer for CPU printf: " << duration2 << '\n';
+    end = std::chrono::system_clock::now();
+    std::chrono::duration<double> diff2 = end-start;
+    std::cout << "Time to CPU  ints : " << diff2.count() << " s\n";
 
-    cout << "speedup  : " << duration2 / duration << '\n';
+    cout << "speedup  : " << diff2.count() / diff.count() << '\n';
 
     //==========================make csv file ==================================
 
@@ -1033,41 +1041,7 @@ void multigrid_method_once_sparse_matrix(int row, occa::memory o_a, occa::memory
     o_x.copyFrom(x);
 
 
-    clock_t start, start2;
-
-    double duration, duration2;
-    start = clock();
-    for (int i = 0; i < 10; i++) {
-        multigrid_method_gpu_sparse_matrix(row, o_a, o_a_row, o_a_col, o_b, o_x, device, recursion, alpha, size_a);
-
-        occa::memory o_res, o_res2;
-
-        o_res  = device.malloc(row * sizeof(float));
-        o_res2  = device.malloc(row * sizeof(float));
-
-        sparse_Matrix_Vector_Multiplication_call_gpu(row, size_a, o_a, o_a_row, o_a_col, o_x, o_res, device);
-
-        add_sub_call_gpu(row, o_b, o_res, o_res2, device, -1);
-
-        o_res2.copyTo(x);
-
-        float r_abs = norm(x, row);
-
-        cout << "residual steps gpu  = " << r_abs << endl;
-
-        if (r_abs < 10e-5) {
-            cout << "residual  = " << r_abs << endl;
-            break;
-        }
-
-    }
-
-
-
-    duration = ( clock() - start ) / (double) CLOCKS_PER_SEC;
-    cout << "timer for GPU printf: " << duration << '\n';
-
-    start2 = clock();
+    auto start = std::chrono::system_clock::now();
 
     for (int ii = 0; ii < 10; ii++) {
 
@@ -1095,10 +1069,39 @@ void multigrid_method_once_sparse_matrix(int row, occa::memory o_a, occa::memory
         delete [] x_new2h2;
 
     }
-    duration2 = ( clock() - start2 ) / (double) CLOCKS_PER_SEC;
-    cout << "timer for CPU printf: " << duration2 << '\n';
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> diff = end-start;
+    std::cout << "Time to CPU  ints : " << diff.count() << " s\n";
+    start = std::chrono::system_clock::now();
+    for (int i = 0; i < 10; i++) {
+        multigrid_method_gpu_sparse_matrix(row, o_a, o_a_row, o_a_col, o_b, o_x, device, recursion, alpha, size_a);
 
-    cout << "speedup  : " << duration2 / duration << '\n';
+        occa::memory o_res, o_res2;
+
+        o_res  = device.malloc(row * sizeof(float));
+        o_res2  = device.malloc(row * sizeof(float));
+
+        sparse_Matrix_Vector_Multiplication_call_gpu(row, size_a, o_a, o_a_row, o_a_col, o_x, o_res, device);
+
+        add_sub_call_gpu(row, o_b, o_res, o_res2, device, -1);
+
+        o_res2.copyTo(x);
+
+        float r_abs = norm(x, row);
+
+        cout << "residual steps gpu  = " << r_abs << endl;
+
+        if (r_abs < 10e-5) {
+            cout << "residual  = " << r_abs << endl;
+            break;
+        }
+
+    }
+
+    end = std::chrono::system_clock::now();
+    std::chrono::duration<double> diff2 = end-start;
+    std::cout << "Time to GPU  ints : " << diff2.count() << " s\n";
+    cout << "speedup  : " << diff.count() / diff2.count() << '\n';
 
     o_x.copyTo(x);
 

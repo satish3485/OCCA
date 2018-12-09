@@ -1,7 +1,7 @@
 
 
-a = csvread('amatrix.csv');
-b = csvread('bvector.csv');
+a = single(csvread('amatrix.csv'));
+b = single(csvread('bvector.csv'));
 
 X = linsolve(a,b);
 
@@ -29,3 +29,5 @@ plot(X)
 %     xxx =  jacobi1 (100,a,b,xxx);
 % end
 % res = a*xxx
+r = norm(a*x_cpu-b)
+r2 = norm(a*X-b)
