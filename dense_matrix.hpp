@@ -25,6 +25,7 @@ using namespace std;
 #include <occa.hpp>
 #include "cpu.hpp"
 #include <stdio.h>
+#include <chrono>
 // dense_Matrix_Vector_Multiplication : This function dot production of matrix and vector
 void dense_Matrix_Vector_Multiplication(int row, int colume, occa::memory o_a, occa::memory o_b, occa::memory o_ab, occa::device device);
 

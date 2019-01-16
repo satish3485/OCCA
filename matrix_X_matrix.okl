@@ -430,21 +430,10 @@
             }
         }
     }
-  /*
-    for (int o1 = 0; o1 < 1; o1 += 16; @outer) {
-        for (int i = o1; i < (o1 + 16); ++i; @inner) {
-            if (i < 2) {
-                for (int j = 0; j < size; j++) {
-                        ab[row_number[j]] += a[j] * b[col_number[j]];
-                }
-            }
-        }
-    } */
 }
 
 
 @kernel void jacobi_method_gpu_sparse_matrix(float *a, int *col, int *row, float *b, float *x, float * x_new, int n, int size) {
-
 
 
 
@@ -455,12 +444,11 @@
             }
         }
     }
-
     for (int o1 = 0; o1 < n; o1 += 16; @outer) {
         for (int i = o1; i < (o1 + 16); ++i; @inner) {
+        if (i < size) {
             for (int j = 0; j < size; j++) {
-            if (i < size) {
-                if (row[j] != col[j]  && i == row[j]) {
+              if (row[j] != col[j]  && i == row[j]) {
                     x_new[i] += (a[j] * x[col[j]]);
                 }
             }
@@ -484,9 +472,9 @@
 }
 
 /*
-@kernel void reduction_matrix_sparse_matrix_gpu(int size, int len, float *result2, int * result2_row, int * result2_col, float * result, int * size_non, int point, int i, int j){
+@kernel void interpolation_matrix_sparse_matrix_gpu(int size, int len, float *result2, int * result2_row, int * result2_col, float * result, int * size_non, int point, int i, int j){
 
-            for (int k = 0; k < 1; k++; @tile(16, @outer, @inner)) {
+            for (int k = 0; k < 16; k++; @tile(16, @outer, @inner)) {
                     size_non[0] = 0;
                     if (i + 1 == (len / 2) && len % 2 != 1) {
 
@@ -514,7 +502,7 @@
 }
 
 
-@kernel void interpolation_matrix_sparse_matrix_gpu(float * m, int *col, int *row, int size, int len, float * result) {
+@kernel void reduction_matrix_sparse_matrix_gpu(float * m, int *col, int *row, int size, int len, float * result) {
 
     //interpolation
     for (int i = 0; i < len*(len / 2); i++; @tile(16, @outer, @inner)) {
@@ -575,7 +563,7 @@
 }
 
 
-@kernel void interpolation_matrix_sparse_matrix_gpu(float * m, int *col, int *row, int size, int len, int len2, float * result) {
+@kernel void reduction_matrix_sparse_matrix_gpu(float * m, int *col, int *row, int size, int len, int len2, float * result) {
 
     //interpolation
     for (int i = 0; i < len*len2; i++; @tile(16, @outer, @inner)) {
@@ -583,48 +571,46 @@
     }
 
     for (int o1 = 0; o1 < len2; o1 += 16; @outer) {
-        for (int o0 = 0; o0 < size; o0 += 16; @outer) {
+        //for (int o0 = 0; o0 < size; o0 += 16; @outer) {
             for (int i = o1; i < (o1 + 16); i++; @inner) {
-                for (int j = o0; j < (o0 + 16); j++; @inner) {
-
-                    if (i < len2 && j < size) {
-                        if (i + 1 == len2 && len % 2 != 1) {
-                            if ((row[j] + col[j]*len) == (2 * i + (col[j] * len))) {
-                                result[i + col[j]* len2] +=  0.5 * m[j];
-                            }
-                            else if ((row[j] + col[j]*len) == (2 * i + (col[j] * len)) + 1) {
-                                result[i + col[j]* len2] +=  0.5 * 2 * m[j];
-                            }
-                        }
-                        else {
-                            if ((row[j] + col[j]*len)  == (2 * i + (col[j] * len))) {
-                                result[i + col[j]* len2] +=  0.5 * m[j];
-                            }
-                            else if ((row[j] + col[j]*len)  == (2 * i + (col[j] * len)) + 1) {
-                                result[i + col[j]* len2] +=  0.5 * 2 * m[j];
-                            }
-                            else if ((row[j] + col[j]*len)  == (2 * i + (col[j] * len)) + 2) {
-                                result[i + col[j]* len2] +=  0.5 * m[j];
-                            }
-                        }
+            if(i < len2){
+                for (int j = 0; j < size; j++) {
+                  if (i + 1 == len2 && len % 2 != 1) {
+                    if ((row[j] + col[j]*len) == (2 * i + (col[j] * len))) {
+                      result[i + col[j]* len2] +=  0.5 * m[j];
                     }
+                    else if ((row[j] + col[j]*len) == (2 * i + (col[j] * len)) + 1) {
+                      result[i + col[j]* len2] +=  0.5 * 2 * m[j];
+                    }
+                  }
+                  else {
+                    if ((row[j] + col[j]*len)  == (2 * i + (col[j] * len))) {
+                      result[i + col[j]* len2] +=  0.5 * m[j];
+                    }
+                    else if ((row[j] + col[j]*len)  == (2 * i + (col[j] * len)) + 1) {
+                      result[i + col[j]* len2] +=  0.5 * 2 * m[j];
+                    }
+                    else if ((row[j] + col[j]*len)  == (2 * i + (col[j] * len)) + 2) {
+                      result[i + col[j]* len2] +=  0.5 * m[j];
+                    }
+                  }
                 }
             }
-        }
+            }
+        //}
     }
 }
 
-@kernel void reduction_matrix_sparse_matrix_gpu(int size, int len,float *result22, int * result22_row, int * result22_col, float * result2, float * result, int * size_non, int len2){
+@kernel void interolation_matrix_sparse_matrix_gpu(int size, int len, float * result2, float * result, int len2){
 
     for (int i = 0; i < len2*len2; i++; @tile(16, @outer, @inner)) {
         result2[i] = 0;
     }
     for (int o1 = 0; o1 < len2; o1 += 16; @outer) {
-        for (int o0 = 0; o0 < len2; o0 += 1; @outer) {
+      //  for (int o0 = 0; o0 < len2; o0 += 16; @outer) {
             for (int i = o1; i < (o1 + 16); i++; @inner) {
-
-                for (int j = o0; j < (o0 + 1); j++; @inner) {
-                    if (i < len2 && j < len2) {
+            if (i < len2) {
+                for (int j = 0; j < len2; j++) {
                         if (i + 1 == len2 && (len % 2) != 1) {
                             result2[i * len2 + j] = 0.25 * (result[j + 2 * (i * len2)] + 2 * result[j + len2 + 2 * (i * len2)]);
                         }
@@ -634,31 +620,34 @@
                     }
                 }
             }
-        }
+      //  }
     }
-    for (int o1 = 0; o1 < 1; o1 += 16; @outer) {
-        for (int k = o1; k < (o1 + 16); ++k; @inner) {
-            int point =0;
-            for (int i =0; i < len2; i++) {
-                for (int j =0; j < len2; j++) {
+}
 
-                    if (result2[i*len2+j] != 0) {
-                        result22[point] = result2[i*len2+j];
-                        result22_col[point] = j;
-                        result22_row[point] = i;
-                        point++;
-                    }
-                }
+
+
+@kernel void final_matrix_interpolation_reduction(int len2, float *result2, float *result22, int * result22_row, int * result22_col, int * size_non, int i, int point){
+    for (int o1 = 0; o1 < 1; o1 += 16; @outer) {
+        for (int k = o1; k < (o1 + 16); k++; @inner) {
+            if (k < 1){
+                  for (int j =0; j < len2; j++) {
+                      if (result2[i*len2+j] != 0) {
+                          result22[point] = result2[i*len2+j];
+                          result22_col[point] = j;
+                          result22_row[point] = i;
+                          point++;
+                      }
+                  }
+              }
+              size_non[0] = point;
             }
-            size_non[0] = point;
         }
-    }
 }
 
 @kernel void sparse_matrix_to_vector_gpu(int size, int len, float *result22, int * result22_row, int * result22_col, float * result2,int * size_non, int len2
                                          ){
 
-    for (int o1 = 0; o1 < 1; o1 += 16; @outer) {
+    for (int o1 = 0; o1 < 16; o1 += 16; @outer) {
         for (int k = o1; k < (o1 + 16); ++k; @inner) {
             int point =0;
             for (int i =0; i < len2; i++) {

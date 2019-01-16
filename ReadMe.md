@@ -3,7 +3,8 @@
 
 	OCCA: https://libocca.org
 	c++
-
+	Note: If OOCA_DIR enviornment variable is not defined
+	you must define it with path of OCCA installation.
 # Methods
 	Dense Matrix Vector Multiplication
 	Dense Matrix Matrix Operation

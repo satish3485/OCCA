@@ -164,7 +164,8 @@ void makeVector(float x[], int len) {
 	srand (time(NULL));
 //    srand (32424);
 	for (int i = 0; i < len; ++i) {
-		x[i]  = 50000 * sin((3.14 / len) * i + 1);
+		x[i]  = sin((3.14  * i )/ len);
+		// x[i]  = -500;
 	}
 }
 
@@ -239,7 +240,7 @@ void makeSparseMatrix_To_vectors(float x[], int row, int colume, float non_zero[
 int size_non_zero_marix(float x[], int row, int colume) {
 	int size = 0;
 	for (int i = 0; i < row * colume; i++) {
-		if (x[i] != 0) {
+		if (x[i] != 0.0) {
 			size++;
 		}
 	}
@@ -612,6 +613,7 @@ int interpolation_reduction_matrix_sparse_matrix(float m[], int col[], int row[]
 			}
 		}
 	}
+
 	int point = 0;
 	for (int i = 0; i < len2; i++) {
 		for (int j = 0; j < len2; j++) {
@@ -645,7 +647,11 @@ float norm(float v[], int size) {
 	return sqrt(sum);
 }
 
-void dif2 ( int m, int n, float a[] ) {
+int mx_i(int m , int n, int i, int j ){
+	return j*m+i;
+}
+
+void laplace1D ( int m, int n, float a[] ) {
 	for (int j = 0; j < n; j++ ) {
 		for (int i = 0; i < m; i++ ) {
 			if ( j == i - 1 ) {
@@ -663,6 +669,30 @@ void dif2 ( int m, int n, float a[] ) {
 		}
 	}
 
+}
+
+void laplace2D ( int m, int n, float a[] ) {
+	for (int j = 0; j < n; j++ ) {
+		for (int i = 0; i < m; i++ ) {
+			a[i + j * m] = 0;
+		}
+	}
+		for (int i = 0; i < m; i++ ) {
+				a[i + i * m] = 4;
+				if (i-1 >= 0) {
+						a[(i-1)+i*m] = -1;
+				}
+
+				if (i+1 < m) {
+						a[(i+1)+i*m] = -1;
+				}
+		}
+		int j = 0;
+		for (int i =0; i < m/2; i++){
+			j = i+(m/2);
+			a[i*m+j] = -1;
+			a[j*m+i] = -1;
+		}
 }
 
 void reduction_vector_sparse(float v[], int len2, float result[]) {

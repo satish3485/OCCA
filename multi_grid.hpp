@@ -26,6 +26,8 @@ using namespace std;
 #include "cpu.hpp"
 #include <fstream>
 #include <stdio.h>
+#include <iomanip>
+#include <chrono>
 // gauss_elmination : This function gauss elmination method
 void gauss_elmination(int row, occa::memory o_a, occa::memory o_b, occa::memory o_ab, occa::device device);
 
@@ -84,7 +86,7 @@ void sparse_Matrix_Vector_Multiplication_call_gpu(int row, int size, occa::memor
 void jacobi_method_call_gpu_sparse_matrix(int row, occa::memory o_a, occa::memory o_a_col, occa::memory o_a_row, occa::memory o_b, occa::memory o_x, occa::memory o_x_new2h, occa::device device,  int iteration, int size, occa::memory o_roww);
 
 //reduction_interpolation_reduction_sparse_matrix_call_gpu: reduction of matrix M[10][10] => M[5][5]
-int reduction_interpolation_reduction_sparse_matrix_call_gpu(int row, occa::memory o_a, occa::memory o_a_col, occa::memory o_a_row,  occa::memory o_result, occa::memory o_result_row, occa::memory o_result_col, occa::device device, int size, occa::memory o_size);
+int reduction_interpolation_reduction_sparse_matrix_call_gpu(int row, occa::memory o_a, occa::memory o_a_col, occa::memory o_a_row, occa::device device, int size, occa::memory o_size, occa::memory o_result, occa::memory o_result_row, occa::memory o_result_col);
 
 //sparse_vector_to_matrix_gpu_call : convert CSR format to matrix
 void sparse_vector_to_matrix_gpu_call(int row, occa::memory o_a, occa::memory o_a_row, occa::memory o_a_col, occa::device device, int size_a, occa::memory o_aa);
@@ -100,43 +102,3 @@ void multigrid_method_once_sparse_matrix(int row, occa::memory o_a, occa::memory
 
 //row_vector : make csr format vector for row
 void row_vector(occa::memory o_a_row, int row, int size, occa::memory o_row_number);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

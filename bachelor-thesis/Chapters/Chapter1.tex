@@ -1,0 +1,191 @@
+\chapter{Introduction}
+In this chapter, We will explain the multi-grid definition and OCCA components. We are using CSR format for sparse matrix. We will explain also, What is CSR format ? and how can we save memory with using CSR format ?
+
+
+\section{Multi-grid Method}
+\subsection{Model Problem}
+Multigrid methods were originally applied to simple boundary value problems that arise in many physical applications. For simplicity and for historical reasons, these problems provide a natural introduction to multi-grid methods.\\
+
+\subsubsection{One-dimensional boundary value problem:}
+\begin{equation}
+	-u''(x) + \alpha u(x) = f(x)  \quad 0<c<1, \alpha > 0 
+\end{equation}
+\begin{equation}
+	u(0) = u(1) = 0
+\end{equation}
+
+While this problem can be handled analytically, our present aim is to consider numerical methods. Many such approaches are possible, the simplest of which is a finite difference method. The domain of the problem ${x : 0\leq x\leq 1}$ is partitioned into n subintervals by introducing the grid points $X_j = j_h$, where h = 1/n is the constant width of the subintervals. which we denote h.
+	At each of the n-1 interior grid points, the original differential equation (1.1) is replaced by a second-order finite difference approximation. In making this replacement, we also introduce as an approximation to the exact solution $U(X_j)$. This approximate solution may now be represented by a vector $v = (v_i,..., v_{n-i})^T$, whose components satisfy the n —l linear equations\\
+	Defining $f=(f(x_1),...,f(x_{n_1}))^T =(f_1,...,f_{n-i})^T$, the vector of right-side values, we may also represent this system of linear equations in matrix form as\\
+	$1/h^2
+	\begin{bmatrix}
+		2+\alpha h^2 & -1 & & & &\\
+		-1 & 2+\alpha h^2 & -1 & & &\\
+		&. & . & . & & \\
+		& &. & . & . &  -1 \\
+		 & & -1 & & -1 &2+\alpha h^2\\
+	\end{bmatrix}
+	\begin{bmatrix}
+		v_1\\
+		.\\
+		.\\
+		.\\
+		v_{n-1}
+	\end{bmatrix} = 
+	\begin{bmatrix}
+		f_1\\
+		.\\
+		.\\
+		.\\
+		f_{n-1}
+	\end{bmatrix}$\\
+	or even more compactly as Av = f. The matrix A is (n —1) x (n —1), tridiagonal, symmetric and positive definite.\\
+	\subsubsection{Solution Methods} 
+To solve the systems of linear equations there are several methods of solution:\\
+• Direct\\
+– Gaussian elimination \\
+– Factorisation\\
+• Iterative\\
+– Jacobi\\
+– Gauss-Seidel\\
+– Conjugate Gradient, etc.\\
+When it comes to choosing between direct or iterative solution methods, there are several factors to consider.\\
+The first consideration is the application and the computer that is used. Since direct methods are expensive in terms of memory and time intensive for CPUs, they are preferable for small to medium-sized 2D and 3D applications. Conversely, iterative methods have a lower memory consumption and for large 3D applications, they outperform direct methods. Further, it is important to note that iterative methods are more difficult to tune and more challenging to get working for matrices arising from multi-physics problems. 
+\subsubsection{A two-dimensional boundary value problem}
+$-u''(xx) - u(yy) + \alpha u(x) = f(x,y)  \quad 0<x<1, \quad 0<y<1,\\
+u = 0 , x = 0, x = 1, y = 0, y = 1 \quad  \alpha > 0$ \\ 
+We obtain a block-tridiagonal system Av=f\\
+$
+	\begin{bmatrix}
+		A_1 & -I_y & & & &\\
+		-I_y & A_2 & -I_y & & &\\
+		&. & . & . & & \\
+		& &. & . & . &   \\
+		 & &  & & -I_y &A_{N-1}\\
+	\end{bmatrix}
+	\begin{bmatrix}
+		v_1\\
+		.\\
+		.\\
+		.\\
+		v_{N-1}
+	\end{bmatrix} = 
+	\begin{bmatrix}
+		f_1\\
+		.\\
+		.\\
+		.\\
+		f_{N-1}
+	\end{bmatrix}$\\
+	where $I_y$ is a diagonal matrix with $1/h^2_y$ on the diagonal\\
+	
+	The main idea of multi-grid is to accelerate the convergence of a basic iterative method (known as relaxation, which generally reduces short-wavelength error) by a global correction of the fine grid solution approximation from time to time accomplished by solving a coarse problem. The coarse problem, while cheaper to solve is similar to the fine grid problem in that it also has short and long-wave length errors. It can also be solved by a combination of relaxation and appeal to still coarser grids. This recursive process is repeated until a grid is reached where the cost of direct solution there is negligible compared to the cost of one relaxation sweep on the fine grid. This multi-grid cycle typically reduces all error components by a fixed amount bounded well below one independent of the fine grid mesh size. The typical application for multi-grid is in the numerical solution of elliptic partial differential equations in two or more dimensions.\\
+	There are many variations of multi-grid algorithms, but the common features are that a hierarchy of discretisations (grids) is considered. The important steps are:\\
+
+Smoothing – reducing high frequency errors, for example using a few iterations of the Gauss–Seidel method.\\
+Restriction – downsampling the residual error to a coarser grid.\\
+Interpolation or prolongation – interpolating a correction computed on a coarser grid into a finer grid.\\
+\subsubsection{Computation Costs}
+Let 1 Work Unit(WU) be the cost of one relaxation sweep on the fine-grid.\\
+• Ignore the cost of restriction and interpolation (typically about 20 percentage of the total cost).\\
+• Consider a V-cycle with 1 pre-Coarse-Grid correction relaxation sweep and 1 post-Coarse- Grid correction relaxation sweep.\\
+• Cost of V-cycle(in WU):\\
+$2(1+2^{-d}+2^{-2d}+2^{-3d}+...+2^{-Md} < \dfrac{2}{1-2^{-d}}$\\
+Cost is about 4,8/3,16/7 WU per V-cycle in 1,2 and 3 dimensions.\\
+• Multi grid has been proven on a wide variety of problems, especially elliptic PDEs, but has also found application among parabolic $\&$ hyperbolic PDEs, integral equations, evolution problems, geodesic problems etc.\\
+• With the right setup, multi grid is frequently an optimal (i.e., O(N)) solver.\\
+• Multi grid is of great interest because it is one of the very few scalable algorithms, and can be parallelised readily and efficiently!\\
+
+
+%\subsection{A Subsection}
+
+\section{OCCA: Unified Approach To Multithreading Languages}
+%\href{https://scholarship.rice.edu/bitstream/handle/1911/102233/TR15-04.pdf?sequence=1&isAllowed=y}{OCCA}
+\subsection{History}
+\href{https://scholarship.rice.edu/bitstream/handle/1911/102233/TR15-04.pdf?sequence=1&isAllowed=y}{OCCA} (like oca-rina) started off a project in  Tim Warburton's group. The group mainly worked high-order numerical methods, specifically on the algorithms to make them performant. During that time, they mainly focused on GPU programming using OpenCL and CUDA.
+
+They had wrappers for OpenCL and CUDA to test implementations, which we almost always had 2 almost identical codes to run on NVIDIA and AMD GPUs. From \ref{txt:occa} 
+\subsection{Overview}
+The different projects mentioned have focused on creating some mapping between two or more programming languages for these assertors or switching between multiple platform for computation purpose. OCCA, a library including an API that abstracts back-ends and kernel languages from OpenMP, OpenCL and CUDA. From \ref{txt:occa} 
+\begin{figure}
+\centering
+\includegraphics[width= 12cm]{../occa2}
+\caption{ Current relationship between supported frontends, the OCCA languages, and supported backends}
+\end{figure}\\
+\subsection {Device}
+Graphics cards were developed due to the increasing demand for improved graphics in video games. The similarities between CUDA and OpenCL become evident in their programming model but their popularity in use differ. NVIDIA releases their own compiler wrapper, nvcc to allow CUDA kernels to be embedded in the application code. While OpenCL separates host code (application code) with the device code (kernels), which steepens the learning curve.\\
+\subsection {Setup device}
+An implementation of this concept was developed, producing the OCCA intermediate representation (IR) which generalises current parallel architectures to unify the different languages and standards for heterogeneous computing, including serial code, Pthreads, OpenMP, CUDA, OpenCL \\
+
+
+
+In OCCA we can define the \textbf{target device runtime}, with the following simples lines of codes. From \ref{txt:occa}  \\
+\centerline{"mode: 'Serial'"}\\
+We can used the device manually also\\
+CUDA  \centerline{"mode: 'CUDA', deviceID: 0"}\\
+OpenCL  \centerline{"mode: 'OpenCL', deviceID: 0, platformID: 0"}\\
+THREADS  \centerline{"mode: 'Threads', threads: 4, pinnedCores: [0, 1, 2, 3]"}\\
+OPENMP  \centerline{"mode: 'OpenMP', threads: 4"}  \\
+
+\subsection{Memory management}
+We can not allocate runtime memory in the device. Hence in the host, data is usually initialised either copied to the device, modified in the device by running a kernel.\\
+
+In OCCA we can allocate memory, with the following simples lines of codes. \\
+\begin{lstlisting}[language=C, caption=allocating memory to the device]
+	// Copy a and b to the device
+	occa::memory o_a  = device.malloc(entries * sizeof(float), a);
+	occa::memory o_b  = device.malloc(entries * sizeof(float), b);
+	// Don't initialise o_ab
+	occa::memory o_ab = device.malloc(entries * sizeof(float))
+\end{lstlisting}
+In code Listing 1.1 line 2 and 3, We are allocating memory of size entries with type float and copy a and b to device. But in line 5, We are just allocate memory. Because we allocate this memory for our result and we are not copying anything to it.
+\subsection{kernel}
+Okl (Programming language use by OCCA) now has the feature to automatically assign working dimensions to the off-load model through the outer and inner loops. A kernel launch in OpenCL and CUDA are always separate from the kernel source, but maintain a connection through the working dimensions used in a kernel execution.\\
+Kernel are build at runtime so we require 2 things\\
+1. file name with the kernel source code \\
+2. Name of the kernel in source code\\
+\begin{lstlisting}[language=C, caption=call to kernel function]
+	occa::kernel addVectors = device.buildKernel("addVectors.okl",
+                                             "addVectors")
+    // we call to kernel function
+    addVectors(n, o_a, o_b, o_ab);
+\end{lstlisting}
+Above Listing 1.2, We are using function buildKernel for building kernel at runtime. In listing 1.2, addVectors.okl is a file name with extension okl and addVectors is the kernel function name. And next-step we call to kernel with its variables.\\
+\textbf{Parallelism}\\
+\label{txt:innerOuterloop}
+OpenCL and CUDA are always separate from the kernel source, but maintain a connection through the working dimension used in a kernel execution. OCCA extends the C for-loops by adding a fourth statement (@outer/ @inner). Aside from showing the explicit loops, OCCA now has the feature to automatically assign working dimensions to the offload model through the outer and inner loops.
+\begin{lstlisting}[language=C, caption=outer loop example]
+	for (int i = 0; i < 3; ++i; @outer) {
+  		work(i);
+}
+//should be expected to work regardless of the iteration ordering, such as:
+work(0);
+work(1);
+work(2);
+// and also 
+work(2);
+work(0);
+work(1);
+\end{lstlisting}
+Since the execution order can be non-deterministic and in parallel, there shouldn't be any loop dependencies.\\
+Distributing work between outer and inner loops is heavily dependent on the device architecture. Try aiming for a power of 2 size for inner-loop sizes to make use of vectorization. From \ref{txt:mainOCCA}
+%\section{Compressed Row Storage (CRS)}
+%A sparse matrix or sparse array is a matrix in which most of the elements are zero. The number  of zero-valued elements divided by total number of elements is called sparsity of the matrix. When storing and computing sparse matrix on device it is necessary to use the efficient algorithm and data structure. Because we can store sparse matrix in significantly in less storage.
+%\subsection{Introduction}
+%The Compressed Row and Column Storage formats are the most general. They make absolutely no assumptions about the sparsity structure of the matrix and they don't store any unnecessary elements. On the other hand, they are not very efficient, needing an indirect addressing step for every single scalar operation in a matrix-vector product or preconditioned solve. From \ref{txt:CSR}\\
+%For CRS, we create 3 vectors and size of the vectors are length of non-zero elements of matrix. They are 
+%\begin{itemize}
+%	\item Non-zero elements of the matrix
+%	\item column number for non-zero elements of the matrix
+%	\item row number for non-zero elements of the matrix
+%\end{itemize}
+%\begin{center}
+%	\includegraphics[width=12cm]{../sparse.png} 
+%	\captionof{figure}{convert sparse matrix to CSR format}
+%	\label{img:csrfo}
+%\end{center}
+%
+%
+%The \texttt{val}  (\ref{img:csrfo}) represents the non-zero values of the matrix, read first by row left to right, then by column top to bottom. The \texttt{colind} represents the column index corresponding to the values. The \texttt{rowptr} represents the indexes belonging to a row, it contains an index per row corresponding to an index in the two other vectors. It is clear that all indexes from this starting index and to the starting index of the next row will belong to the given row. The last index is the number of rows plus one, so the algorithm doesn’t have to check if we’re at the last row.
+%
+

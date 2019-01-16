@@ -24,7 +24,7 @@
 //#include "cstdlib"
 #include "multi_grid.hpp"
 using namespace std;
-#include <chrono>
+
 
 void gauss_elmination(int row, occa::memory o_a, occa::memory o_b, occa::memory o_ab, occa::device device) {
 
@@ -544,7 +544,29 @@ void multigrid_method_once(int row, occa::memory o_a, occa::memory o_b, occa::me
     float *x2 = new float[row];
     float *x_new2h = new float[row];
 
-    makeSPDmatrix(a, row, row);
+    int matrix_type = 0;
+    cout << "1. 1D Laplace Matrix press 1 & enter" << endl;
+
+    cout << "2. 2D Laplace Matrix Operation press 2 & enter" << endl;
+    cout << "3. Random Matrix press 3 & enter" << endl;
+    cin >> matrix_type;
+
+    if (matrix_type == 1) {
+      laplace1D(row,row,a);
+    }
+    else if(matrix_type == 2){
+      laplace2D(row,row,a);
+    }
+    else if(matrix_type == 3){
+      makeSPDmatrix(a, row, row);
+    }
+    else{
+      cout << "Error : You did not choose any choice correctly" << endl;
+      return;
+    }
+
+    // dif2(row,row,a);
+    // makeSPDmatrix(a, row, row);
     makeVector(b, row);
 
     //==========================make csv file ==================================
@@ -565,7 +587,7 @@ void multigrid_method_once(int row, occa::memory o_a, occa::memory o_b, occa::me
     aMatrix.close();
     bvector.open( "bvector.csv");
     for (int i = 0; i < row; i++) {
-        bvector << b[i];
+        bvector <<setprecision(9)<< b[i];
 
         bvector << "\n ";
     }
@@ -601,13 +623,17 @@ void multigrid_method_once(int row, occa::memory o_a, occa::memory o_b, occa::me
     // double duration, duration2;
     // start = clock();
     auto start = std::chrono::system_clock::now();
+    float old_residual =0;
+    float * cpu_residual = new float[10];
+    float * gpu_residual = new float[10];
 
-    for (int i = 0; i < 5; i++) {
+    cpu_residual[0] = 0;
+    gpu_residual[0] = 0;
+
+    for (int i = 0; i < 10; i++) {
         multigrid_method_gpu(row, o_a, o_b, o_c, device, recursion, 10);
         // calculate absolute value residual r = ||Ax-b||
         // if < epsilon : break
-
-
 
         init_zero(x_new2h, row);
 
@@ -626,6 +652,11 @@ void multigrid_method_once(int row, occa::memory o_a, occa::memory o_b, occa::me
 
         cout << "residual steps gpu  = " << r_abs << endl;
 
+        if (i > 0){
+          cout <<"Convergence : " <<r_abs/old_residual<<endl;
+          cpu_residual[i] = r_abs/old_residual;
+        }
+        old_residual = r_abs;
         if (r_abs < 10e-5) {
             cout << "residual  = " << r_abs << endl;
             break;
@@ -642,7 +673,7 @@ void multigrid_method_once(int row, occa::memory o_a, occa::memory o_b, occa::me
 
     start = std::chrono::system_clock::now();
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
         multigrid_method(a2, x2, b2, recursion, row, 10);
 
         float *x_new2h2 = new float[row];
@@ -658,6 +689,11 @@ void multigrid_method_once(int row, occa::memory o_a, occa::memory o_b, occa::me
 
         cout << "residual steps i cpu  = " << r_abs << endl;
 
+        if (i > 0){
+          cout <<"Convergence : " <<r_abs/old_residual<<endl;
+          gpu_residual[i] = r_abs/old_residual;
+        }
+        old_residual = r_abs;
         if (r_abs < 10e-5) {
             cout << "residual  = " << r_abs << endl;
             break;
@@ -675,17 +711,26 @@ void multigrid_method_once(int row, occa::memory o_a, occa::memory o_b, occa::me
 
     //==========================make csv file ==================================
 
-    ofstream xvector, x_cpu;
+    ofstream xvector, x_cpu, cpu_res, gpu_res;
     xvector.open( "x_gpu.csv");
     x_cpu.open( "x_cpu.csv");
+    cpu_res.open( "cpu_res.csv");
+    gpu_res.open( "gpu_res.csv");
     for (int i = 0; i < row; i++) {
-        xvector << x[i];
-        x_cpu << x2[i];
-        xvector << "\n ";
-        x_cpu << "\n";
+        xvector <<setprecision(9)<< x[i];
+        x_cpu <<setprecision(9)<< x2[i];
+        xvector <<setprecision(9)<< "\n ";
+        x_cpu <<setprecision(9)<< "\n";
+    }
+    for (int i=0;i < 10; i++) {
+      /* code */
+      cpu_res <<setprecision(9)<< cpu_residual[i]<<"\n";
+      gpu_res <<setprecision(9)<< gpu_residual[i]<<"\n";
     }
     xvector.close();
     x_cpu.close();
+    cpu_res.close();
+    gpu_res.close();
     //==========================end ============================================
 
     int cnt = 0  ;
@@ -710,7 +755,7 @@ void multigrid_method_once(int row, occa::memory o_a, occa::memory o_b, occa::me
     cout << "number of error: " << cnt << endl ;
     cout << "max relative error: " << max_relative << endl ;
 
-    compareTwoVector(x, x2, row);
+    // compareTwoVector(x, x2, row);
 
     delete [] a;
     delete [] b;
@@ -719,6 +764,8 @@ void multigrid_method_once(int row, occa::memory o_a, occa::memory o_b, occa::me
     delete [] b2;
     delete [] x2;
     delete [] x_new2h;
+    delete [] cpu_residual;
+    delete [] gpu_residual;
 }
 
 //======================== multigrid sparse matrix ===========================================
@@ -769,11 +816,6 @@ void jacobi_method_call_gpu_sparse_matrix(int row, occa::memory o_a, occa::memor
 
     occa::kernel matrix_X_Vector_kernal;
 
-    matrix_X_Vector_kernal = device.buildKernel("matrix_X_matrix.okl",
-                             "init_zero_gpu");
-
-    matrix_X_Vector_kernal(o_x, row);
-
     occa::memory o_x_new25;
 
     o_x_new25  = device.malloc((row) * sizeof(float));
@@ -790,8 +832,7 @@ void jacobi_method_call_gpu_sparse_matrix(int row, occa::memory o_a, occa::memor
 
 }
 
-
-int reduction_interpolation_reduction_sparse_matrix_call_gpu(int row, occa::memory o_a, occa::memory o_a_col, occa::memory o_a_row,  occa::memory o_result2, occa::memory o_result2_row, occa::memory o_result2_col, occa::device device, int size) {
+int reduction_interpolation_reduction_sparse_matrix_call_gpu(int row, occa::memory o_a, occa::memory o_a_col, occa::memory o_a_row, occa::device device, int size, occa::memory o_result2, occa::memory o_result2_row, occa::memory o_result2_col) {
 
     occa::kernel reduction;
     occa::memory o_temp,  o_size, o_temp2;
@@ -801,27 +842,37 @@ int reduction_interpolation_reduction_sparse_matrix_call_gpu(int row, occa::memo
     o_size  = device.malloc(2 * sizeof(int));
     // Compile the kernel at run-time
     reduction = device.buildKernel("matrix_X_matrix.okl",
-                                   "interpolation_matrix_sparse_matrix_gpu");
+                                   "reduction_matrix_sparse_matrix_gpu");
     //    Launch device kernel;
     reduction(o_a, o_a_col, o_a_row, size, row, len2, o_temp);
 
+    float * reduction_matrix = new float[len2 * row];
+
+    o_temp.copyTo(reduction_matrix);
+
+    delete [] reduction_matrix;
+
     reduction = device.buildKernel("matrix_X_matrix.okl",
-                                   "reduction_matrix_sparse_matrix_gpu");
+                                   "interolation_matrix_sparse_matrix_gpu");
 
     int point = 0;
 
-    reduction(size, row, o_result2, o_result2_row, o_result2_col, o_temp2, o_temp, o_size, len2);
+    reduction(size, row, o_temp2, o_temp, len2);
 
-    int *ab = new int[2];
-    o_size.copyTo(ab);
-    point = ab[0];
-    delete [] ab;
+    reduction = device.buildKernel("matrix_X_matrix.okl",
+                                   "final_matrix_interpolation_reduction");
 
+    for (int i =0; i < len2; i++) {
+      reduction(len2, o_temp2, o_result2, o_result2_row, o_result2_col, o_size, i, point);
+      int *ab = new int[2];
+      o_size.copyTo(ab);
+      point = ab[0];
+      delete [] ab;
+    }
 
     return point;
 
 }
-
 void sparse_vector_to_matrix_gpu_call(int row, occa::memory o_a, occa::memory o_a_row, occa::memory o_a_col, occa::device device, int size_a, occa::memory o_aa) {
 
     occa::kernel matrix_X_Vector_kernal;
@@ -857,11 +908,10 @@ void multigrid_method_gpu_sparse_matrix(int row, occa::memory o_a, occa::memory 
     o_res  = device.malloc(row * sizeof(float));
     o_res2  = device.malloc(row * sizeof(float));
 
-    int size_non = (size_a + row);
+    int size_non = (size_a + row)*3;
     o_a2h  = device.malloc(size_non * sizeof(float));
     o_a2h_row  = device.malloc(size_non * sizeof(int));
     o_a2h_col  = device.malloc(size_non * sizeof(int));
-
 
     jacobi_method_call_gpu_sparse_matrix(row, o_a, o_a_col, o_a_row, o_b, o_x, device,  alpha, size_a);
 
@@ -871,8 +921,8 @@ void multigrid_method_gpu_sparse_matrix(int row, occa::memory o_a, occa::memory 
 
     relaxation_reduction_vector(row / 2, o_res2, o_b2h, device);
 
-    size_non =  reduction_interpolation_reduction_sparse_matrix_call_gpu(row, o_a, o_a_col, o_a_row,  o_a2h, o_a2h_row, o_a2h_col, device, size_a);
 
+    size_non =  reduction_interpolation_reduction_sparse_matrix_call_gpu(row, o_a, o_a_col, o_a_row, device, size_a, o_a2h, o_a2h_row, o_a2h_col);
 
     multigrid_method_gpu_sparse_matrix(row / 2, o_a2h, o_a2h_row, o_a2h_col, o_b2h, o_x2h, device, recursion - 1, alpha, size_non);
 
@@ -881,6 +931,8 @@ void multigrid_method_gpu_sparse_matrix(int row, occa::memory o_a, occa::memory 
     relaxation_interpolation_vector_call_gpu(row, o_x2h, o_res_result2h, device);
 
     add_sub_call_gpu(row, o_x, o_res_result2h, o_x, device, 1);
+
+
 
     jacobi_method_call_gpu_sparse_matrix(row, o_a, o_a_col, o_a_row, o_b, o_x, device,  alpha, size_a);
 }
@@ -979,9 +1031,31 @@ void multigrid_method_once_sparse_matrix(int row, occa::memory o_a, occa::memory
     float *x = new float[row];
     float *x_new2 = new float[row];
 
-    makeSPDmatrix_sparse(a, row, row);
+    int matrix_type = 0;
+    cout << "1. 1D Laplace Matrix press 1 & enter" << endl;
+
+    cout << "2. 2D Laplace Matrix Operation press 2 & enter" << endl;
+    cout << "3. Random Matrix press 3 & enter" << endl;
+    cin >> matrix_type;
+
+    if (matrix_type == 1) {
+      laplace1D(row,row,a);
+    }
+    else if(matrix_type == 2){
+      laplace2D(row,row,a);
+    }
+    else if(matrix_type == 3){
+      makeSPDmatrix(a, row, row);
+    }
+    else{
+      cout << "Error : You did not choose any choice correctly" << endl;
+      return;
+    }
+
     makeVector(b, row);
 
+
+    // print_matrix(a, row,row);
     //==========================make csv file ==================================
 
     ofstream aMatrix, bvector;
@@ -1011,6 +1085,7 @@ void multigrid_method_once_sparse_matrix(int row, occa::memory o_a, occa::memory
     init_zero(x_new2, row);
 
     occa::memory o_a_row, o_a_col;
+
 
     //    get length of a none zero elements
     int size_a = size_non_zero_marix(a, row, row);
@@ -1043,6 +1118,13 @@ void multigrid_method_once_sparse_matrix(int row, occa::memory o_a, occa::memory
 
     auto start = std::chrono::system_clock::now();
 
+    float old_residual =0;
+    float * cpu_residual = new float[10];
+    float * gpu_residual = new float[10];
+
+    cpu_residual[0] = 0;
+    gpu_residual[0] = 0;
+
     for (int ii = 0; ii < 10; ii++) {
 
         multigrid_method_sparse_matrix(a_non_zero, a_col_number, a_row, x2, b, recursion, row, alpha, size_a);
@@ -1058,6 +1140,11 @@ void multigrid_method_once_sparse_matrix(int row, occa::memory o_a, occa::memory
 
         float r_abs = norm(x_new2h2, row);
 
+        if (ii > 0){
+          cout <<"Convergence : " <<r_abs/old_residual<<endl;
+          cpu_residual[ii] = r_abs/old_residual;
+        }
+        old_residual = r_abs;
         cout << "residual steps i cpu  = " << r_abs << endl;
 
         if (r_abs < 10e-5) {
@@ -1088,6 +1175,12 @@ void multigrid_method_once_sparse_matrix(int row, occa::memory o_a, occa::memory
         o_res2.copyTo(x);
 
         float r_abs = norm(x, row);
+
+        if (i > 0){
+          cout <<"Convergence : " <<r_abs/old_residual<<endl;
+          gpu_residual[i] = r_abs/old_residual;
+        }
+        old_residual = r_abs;
 
         cout << "residual steps gpu  = " << r_abs << endl;
 
@@ -1126,23 +1219,32 @@ void multigrid_method_once_sparse_matrix(int row, occa::memory o_a, occa::memory
 
     //==========================make csv file ==================================
 
-    ofstream xvector, x_cpu;
+    ofstream xvector, x_cpu, cpu_res, gpu_res;
     xvector.open( "x_gpu.csv");
     x_cpu.open( "x_cpu.csv");
+    cpu_res.open( "cpu_res.csv");
+    gpu_res.open( "gpu_res.csv");
     for (int i = 0; i < row; i++) {
         xvector << x[i];
         x_cpu << x2[i];
         xvector << "\n ";
         x_cpu << "\n";
     }
+    for (int i=0;i < 10; i++) {
+      /* code */
+      cpu_res << cpu_residual[i]<<"\n";
+      gpu_res << gpu_residual[i]<<"\n";
+    }
     xvector.close();
     x_cpu.close();
+    cpu_res.close();
+    gpu_res.close();
     //==========================end ============================================
 
     cout << "number of error: " << cnt << endl ;
     cout << "max relative error: " << max_relative << endl ;
 
-    compareTwoVector(x, x2, row);
+    // compareTwoVector(x, x2, row);
 
     delete [] a;
     delete [] b;
@@ -1152,5 +1254,6 @@ void multigrid_method_once_sparse_matrix(int row, occa::memory o_a, occa::memory
     delete [] a_col_number;
     delete [] x2;
     delete [] x_new2;
-
+    delete [] cpu_residual;
+    delete [] gpu_residual;
 }

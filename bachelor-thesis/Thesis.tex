@@ -1,0 +1,205 @@
+%% ----------------------------------------------------------------
+%% Thesis.tex -- MAIN FILE (the one that you compile with LaTeX)
+%% ---------------------------------------------------------------- 
+
+% Set up the document
+\documentclass[a4paper, 8pt, oneside]{Thesis}  % Use the "Thesis" style, based on the ECS Thesis style by Steve Gunn
+\graphicspath{Figures/}  % Location of the graphics files (set up for graphics to be in PDF format)
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage[]{algorithmicx}
+%\usepackage{lipsum}
+%\usepackage[]{classicthesis}
+\usepackage[table]{xcolor}
+\usepackage{tabularx}
+\usepackage[nottoc]{tocbibind}
+% Include any extra LaTeX packages required
+\usepackage[square, numbers, comma, sort&compress]{natbib}  % Use the "Natbib" style for the references in the Bibliography
+\usepackage{verbatim}  % Needed for the "comment" environment to make LaTeX comments
+\usepackage{vector}  % Allows "\bvec{}" and "\buvec{}" for "blackboard" style bold vectors in maths
+\hypersetup{urlcolor=blue, colorlinks=true}  % Colours hyperlinks in blue, but this can be distracting if there are many links.
+\usepackage{color}
+\lstset{ %
+language=C++,                % choose the language of the code
+basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+numbers=left,                   % where to put the line-numbers
+numberstyle=\footnotesize,      % the size of the fonts that are used for the line-numbers
+stepnumber=1,                   % the step between two line-numbers. If it is 1 each line will be numbered
+numbersep=5pt,                  % how far the line-numbers are from the code
+backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+showspaces=false,               % show spaces adding particular underscores
+showstringspaces=false,         % underline spaces within strings
+showtabs=false,                 % show tabs within strings adding particular underscores
+frame=single,           % adds a frame around the code
+tabsize=2,          % sets default tabsize to 2 spaces
+captionpos=b,           % sets the caption-position to bottom
+breaklines=true,        % sets automatic line breaking
+breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
+escapeinside={\%*}{*)}          % if you want to add a comment within your code
+}
+%% ----------------------------------------------------------------
+\begin{document}
+\begin{titlepage}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for the horizontal lines, change thickness here
+
+\center % Center everything on the page
+ 
+%----------------------------------------------------------------------------------------
+%	HEADING SECTIONS
+%----------------------------------------------------------------------------------------
+
+\textsc{\LARGE Università della Svizzera italiana}\\[1.5cm] % Name of your university/college
+\textsc{\large GPU Implementation of the  Lean Algebraic Multi-grid (LAMG) Solver for Large-scale Graph Problems}\\[0.5cm] % Major heading such as course name
+\textsc{ }\\[0.5cm] % Minor heading such as course title
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\HRule \\[0.4cm]
+{ \huge \bfseries Bachelor Project}\\[0.4cm] % Title of your document
+\HRule \\[1.5cm]
+ 
+%----------------------------------------------------------------------------------------
+%	AUTHOR SECTION
+%----------------------------------------------------------------------------------------
+
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+\emph{Author:}\\
+Satish \textsc{Kumar} % Your name
+\end{flushleft}
+\end{minipage}
+~
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Supervisor:} \\
+Prof  \textsc{Rolf Krause}\\ % Supervisor's Name
+\textsc{Riva Simone}
+\end{flushright}
+\end{minipage}\\[2cm]
+
+% If you don't want a supervisor, uncomment the two lines below and remove the section above
+%\Large \emph{Author:}\\
+%John \textsc{Smith}\\[3cm] % Your name
+
+%----------------------------------------------------------------------------------------
+%	DATE SECTION
+%----------------------------------------------------------------------------------------
+
+{\large \today}\\[2cm] % Date, change the \today to a set date if you want to be precise
+
+%----------------------------------------------------------------------------------------
+%	LOGO SECTION
+%----------------------------------------------------------------------------------------
+
+\includegraphics[width=30mm]{../logo.png}\\[0.5cm] % Include a department/university logo - this will require the graphicx package
+ 
+%----------------------------------------------------------------------------------------
+
+\vfill % Fill the rest of the page with whitespace
+
+\end{titlepage}
+% Declaration Page required for the Thesis, your institution may give you a different text to place here
+
+
+\addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
+%% ----------------------------------------------------------------
+
+
+\pagestyle{fancy}  %The page style headers have been "empty" all this time, now use the "fancy" headers as defined before to bring them back
+
+
+%% ----------------------------------------------------------------
+\lhead{\emph{Contents}}  % Set the left side page header to "Contents"
+\tableofcontents  % Write out the Table of Contents
+\clearpage
+
+%% ----------------------------------------------------------------
+
+\setstretch{1.5}  % Set the line spacing to 1.5, this makes the following tables easier to read
+\clearpage  % Start a new page
+\lhead{\emph{}}  % Set the left side page header to "Abbreviations"
+\listofsymbols{ll}  % Include a list of Abbreviations (a table of two columns)
+{
+% \textbf{Acronym} & \textbf{W}hat (it) \textbf{S}tands \textbf{F}or \\
+Graphic Processing Unit (GPU) has become one of the most important \\components in modern computer systems. GPUs have evolved from  a\\ single-purpose graphic rendering hardware to a powerful processor that\\ is capable of handling many different kinds of computing task.\\
+
+In this report we have created linear algebra API using OCCA and C++.\\ We demonstrated that the individual linear algebra components \\can be faster when using the OCCA as compared to the CPU.\\
+We have worked in OCCA because OCCA is a open-source library. \\It provide a kernel language, a minor extension to C. It is easy to understand.\\ OCCA supports device kernel expansion for the OpenCL, OpenMP and CUDA.\\ 
+
+We implemented the matrix multiplication. Multiplication between matrix\\ and vector, Sparse matrix in CSR format, sparse matrix in CSR format with\\ vector multiplication, matrix - matrix addition, matrix - matrix subtraction,\\ dot product between vectors, with reduction and Multi-grid method for dense\\ matrix and sparse matrix. Thus we have analyzed and compared the performance\\ between OCCA and CPU.
+}
+
+%% ----------------------------------------------------------------
+\mainmatter	  % Begin normal, numeric (1,2,3...) page numbering
+\pagestyle{fancy}  % Return the page headers back to the "fancy" style
+
+% Include the chapters of the thesis, as separate files
+% Just uncomment the lines as you write the chapters
+
+\input{Chapters/Chapter1} % Introduction
+
+\input{Chapters/Chapter2} % Background Theory 
+
+\input{Chapters/Chapter3} % Experimental Setup
+
+\input{Chapters/Chapter4} % Experiment 2
+
+\input{Chapters/Chapter5} % Experiment 2
+
+\input{Chapters/Chapter6} % Experiment 2
+
+\input{Chapters/conclusion } % Experiment 1
+
+%\input{Chapters/Chapter5} % Experiment 2
+
+%\input{Chapters/Chapter6} % Results and Discussion
+
+%\input{Chapters/Chapter7} % Conclusion
+
+%% ----------------------------------------------------------------
+% Now begin the Appendices, including them as separate files
+
+\addtocontents{toc}{\vspace{2em}} % Add a gap in the Contents, for aesthetics
+
+\appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
+
+%\input{Appendices/AppendixA}	% Appendix Title
+%dfsd
+%\input{Appendices/AppendixB} % Appendix Title
+
+%\input{Appendices/AppendixC} % Appendix Title
+
+\addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
+\backmatter
+
+%% ----------------------------------------------------------------
+
+
+%\bibliographystyle{unsrt}
+\bibliography{sample}
+\textbf{Bibliography: }
+\begin{enumerate}
+  \item \href{https://www.overleaf.com/latex/templates/template-for-a-masters-slash-doctoral-thesis/mkzrzktcbzfl#.WxVLAFOFPOQ}{\LaTeX \quad Template}
+  \item \label{txt:multigrid} \href{https://www.researchgate.net/publication/220690328\_A\_Multigrid\_Tutorial\_2nd\_Edition}{A Multigrid Tutorial, 2nd Edition}
+  \item \label{txt:mainOCCA} \href{https://libocca.org/}{OCCA}
+  \item \label{txt:occa} \href{https://scholarship.rice.edu/bitstream/handle/1911/102233/TR15-04.pdf?sequence=1&isAllowed=y}{OKL: A Unified Language for Parallel Architectures}
+  \item \href{http://www.speedup.ch/workshops/w43\_2014/pdf/TimWarburton.pdf}{OCCA: An Extensible Portability Layer for Many-Core Programming}
+  \item \label{txt:CSR} \href{http://www.netlib.org/linalg/html\_templates/node98.html}{CRS Matrix-Vector Product}
+  \item \href{http://netlib.org/linalg/html\_templates/node91.html}{Compressed Row Storage (CRS)}
+  \item \label{txt:sparsematrixformat} \href{https://en.wikipedia.org/wiki/Sparse\_matrix}{Sparse matrix}
+  \item \href{https://en.wikipedia.org/wiki/Dot_product}{Dot product}
+  \item \href{https://en.wikipedia.org/wiki/Density\_matrix}{Density matrix}
+  \item \href{https://arxiv.org/pdf/1403.0968.pdf}{OCCA: A unified approach to multi-threading languages}
+	  
+	
+
+\end{enumerate}
+
+\end{document}  % The End
+%% ----------------------------------------------------------------
